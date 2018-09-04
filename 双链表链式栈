@@ -1,0 +1,228 @@
+#include <stdlib.h>
+#include <assert.h>
+#include <vld.h>
+
+#define elem_type char
+
+typedef struct _NODE
+{
+	elem_type data;
+	struct _NODE *priv;
+	struct _NODE *next;
+}NODE;
+
+
+NODE *InitDLinkStck();
+bool Destory(NODE *pstack);
+void Show(NODE *pstack);
+
+bool IsEmpty(NODE *pstack);
+int GetLength(NODE *pstack);
+
+bool Put(NODE *pstack, elem_type e);
+bool Get(NODE *pstack, elem_type *e);
+
+bool Push(NODE *pstack, elem_type e);
+bool Pop(NODE *pstack, elem_type *e);
+
+#endif
+
+
+#include "DLINKSTACK.h"
+
+NODE *InitDLinkStck()  //初始化栈
+{
+	NODE *pstack = (NODE *)malloc(sizeof(NODE));
+	assert(pstack != NULL);
+
+	pstack->data = -1;
+	pstack->priv = NULL;
+	pstack->next = NULL;
+
+	return pstack;
+}
+bool Destory(NODE *pstack)
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	elem_type e = 0;
+	while(!IsEmpty(pstack))
+	{
+		Pop(pstack, &e);
+	}
+	free(pstack);
+
+	return true;
+}
+
+void Show(NODE *pstack)
+{
+	if (pstack == NULL || pstack->next == NULL)
+	{
+		return;
+	}
+
+	NODE *p = pstack->priv;
+	int i = GetLength(pstack);
+	while(i--)
+	{
+		printf("%c ", p->data);
+		p = p->priv;
+	}
+	printf("\n");
+}
+
+bool IsEmpty(NODE *pstack)  //判空
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	return pstack->next == NULL;
+}
+
+int GetLength(NODE *pstack)   //得到长度
+{
+	if (pstack == NULL)
+	{
+		return -1;
+	}
+
+	int num = 0;
+	NODE *p = pstack;
+	while(p->next != NULL)
+	{
+		num++;
+		p = p->next;
+	}
+
+	return num;
+}
+
+
+bool Put(NODE *pstack, elem_type e) 
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return false;
+	}
+
+	pstack->priv->data = e;
+
+	return true;
+}
+
+
+bool Get(NODE *pstack, elem_type *e) 
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return false;
+	}
+
+	*e = pstack->priv->data;
+
+	return true;
+}
+
+static NODE *Alloc(elem_type e)
+{
+	NODE *tmp = (NODE *)malloc(sizeof(NODE));
+	if (tmp == NULL)
+	{
+		return NULL;
+	}
+
+	tmp->data = e;
+	tmp->next = NULL;
+	tmp->priv = NULL;
+
+	return tmp;
+}
+
+bool Push(NODE *pstack, elem_type e)
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	NODE *tmp = Alloc(e);
+
+	if (IsEmpty(pstack))
+	{
+		tmp->priv = pstack;
+		pstack->next = tmp;
+		pstack->priv = tmp;
+	}
+	else
+	{
+		tmp->priv = pstack->priv;
+		pstack->priv->next = tmp;
+		pstack->priv =tmp;
+	}
+
+	return true;
+}
+
+bool Pop(NODE *pstack, elem_type *e)
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return false;
+	}
+
+	NODE *p = pstack->priv->priv;
+	p->next = NULL;
+	free(pstack->priv);
+	pstack->priv = p;
+
+	return true;	
+}
+
+#include "DLINKSTACK.h"
+
+bool i2a(int num, NODE *pstack, int radix)
+{
+	if (num == 0)
+	{
+		return false;
+	}
+
+	char arr[36] = {'0','1','2','3','4','5','6','7','8','9',
+		'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+	while(num)
+	{
+		Push(pstack, arr[num % radix]);
+		num /= radix;
+	}
+
+	Show(pstack);
+
+	return true;
+}
+
+int main()
+{
+	NODE *pstack = InitDLinkStck();
+	i2a(80, pstack, 32);
+	Destory(pstack);
+	//int num = 12345;
+	//while (num)
+	//{
+	//	Push(pstack, num % 10);
+	//	num /= 10;
+	//}
+
+	//elem_type e = 0;
+	//Show(pstack);
+	//Pop(pstack, &e);
+	//Show(pstack);
+
+
+	return 0;
+}
