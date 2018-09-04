@@ -1,0 +1,887 @@
+#ifndef _LinkList_H_
+#define _LinkList_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <vld.h>
+
+typedef int ElemType;
+typedef struct _NODE
+{
+	ElemType data;
+	struct _NODE *next;
+
+}NODE;
+
+NODE *InitLink();
+
+void print_int(ElemType *e) ;
+void Show(NODE *phead, void print(ElemType *e));
+
+bool Destory(NODE *phead);
+
+bool IsEmpty(NODE *phead);
+
+int GetLength(NODE *phead);
+
+bool InsertHead(NODE *phead, ElemType e);
+
+bool InsertTail(NODE *phead,ElemType e);
+
+bool Insert(NODE *phead, int pos, ElemType e);
+
+bool DeleteHead(NODE *phead, ElemType *e);
+
+bool DeleteTail(NODE *phead, ElemType *e);
+
+bool Delete(NODE *phead, int pos, ElemType *e);
+
+bool DeleteByValue(NODE *phead, ElemType e);
+
+int GetPos(NODE *phead, ElemType e);
+
+bool Put(NODE *phead, int pos, ElemType e);
+
+bool Get(NODE *phead, int pos, ElemType *e);
+
+////
+bool Sort(NODE *phead);
+
+bool SortChangeNode(NODE *phead); //交换节点的冒泡排序
+
+//////
+bool InsertRight(NODE *phead, ElemType e, ElemType value);
+
+bool InsertLeft(NODE *phead, ElemType e, ElemType value);
+
+bool InsertBoth(NODE *phead, ElemType e, ElemType value);
+
+NODE *GetAddress(NODE *phead, ElemType e);
+
+bool MergerLink_1(NODE *Aphead, NODE *Bphead, NODE *Cphead);//两两比较A,B，较小的头删，然后得到值尾插进C。
+
+bool MergerLink_2(NODE *Aphead, NODE *Bphead, NODE *Cphead);//将A,B一股脑，通过循环全部头删再，尾插进C，
+//  最后C排序。
+
+bool MergerLink_3(NODE *Aphead, NODE *Bphead, NODE *Cphead);//既然A,B都在堆里，而且各自成一个链表，不用什么
+// 删除插入的方法，浪费时间，直接改变他们的头结点即可。
+
+
+bool MergerLink_4(NODE *Aphead, NODE *Bphead);//相当于C = A = A + B;将B按位置插入A。
+
+bool Reverse_1(NODE *phead);  //笨方法，开辟另一个头节点，将链表尾删，尾插进新的，最后换头节点，销毁这个节点。
+
+bool Reverse_2(NODE *phead);  //尾删，按照POS，循环插入自身。
+
+bool Reverse_3(NODE *phead);  //直接交换节点数据。
+
+NODE *Reverse_4(NODE *phead);  //简单粗暴的改变指向。
+
+
+#endif
+
+
+
+#include "LinkList.h"
+
+///////////////////////////////////////////////////////////初始化、打印、销毁
+NODE *InitLink()               //初始化单链表
+{
+	NODE *phead = (NODE *)malloc(sizeof(NODE));
+	if(phead == NULL)
+	{
+		printf("头结点申请失败哦！\n");
+		exit(-1);
+	}
+
+	phead->data = 0;
+	phead->next = NULL;
+	return phead;
+}
+
+void print_int(ElemType *e)             //打印整形
+{
+	printf("%d  ", *e);
+}
+void Show(NODE *phead, void (*print)(ElemType *e))           //打印链表
+{
+	if(phead == NULL || IsEmpty(phead))
+	{
+		return;
+	}
+
+	NODE *p = phead->next;
+	while(p != NULL)
+	{
+		print(&p->data);
+		p = p->next;
+	}
+	printf("\n\n");
+
+}
+
+
+bool Destory(NODE *phead)   //销毁链表
+{
+	if(phead == NULL)
+	{
+		return false;
+	}
+
+	ElemType e = 0;
+	while(phead->next != NULL)
+	{
+		DeleteHead(phead, &e);
+	}
+	free(phead);
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////判空、得到链表长度
+
+bool IsEmpty(NODE *phead) //是否为空链表
+{
+	if(phead == NULL)
+	{
+		return false;
+	}
+	return phead->next == NULL;
+}
+
+int GetLength(NODE *phead)  //得到单链表的长度
+{
+	if(phead == NULL)
+	{
+		return -1;
+	}
+	if(IsEmpty(phead))
+	{
+		return 0;
+	}
+
+	NODE *p = phead;
+	int i = 0;
+	while(p->next != NULL)
+	{
+		p = p->next;
+		i++;
+	}
+
+	return i;
+}
+
+///////////////////////////////////////////////////////////////头插、尾插、插入按位置
+
+static NODE *AllocNode(ElemType e)        //申请节点
+{
+	NODE *tmp = (NODE *)malloc(sizeof(NODE));
+	if(tmp == NULL)
+	{
+		printf("结点申请失败哦！\n");
+		exit(-1);
+	}
+
+	tmp->data = e;
+	tmp->next = NULL;
+
+	return tmp;
+
+}
+
+bool InsertHead(NODE *phead, ElemType e)         //头插
+{
+	if(phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *tmp = AllocNode(e);
+	tmp->next = phead->next;
+	phead->next = tmp;
+
+	return true;
+
+	return Insert(phead, 0, e);
+}
+
+bool InsertTail(NODE *phead,ElemType e)          //尾插
+{
+	if(phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *p = phead;
+	while(p->next != NULL)
+	{
+		p = p->next;
+	}
+
+	NODE *tmp = AllocNode(e);
+	p->next = tmp;
+
+	return true;
+
+	return Insert(phead, GetLength(phead), e);
+}
+
+bool Insert(NODE *phead, int pos, ElemType e)   //插入到指定位置
+{
+	if(phead == NULL || pos < 0 || pos > GetLength(phead))
+	{
+		return false;
+	}
+
+	NODE *p = phead;
+	for(int i = 0; i < pos; i++)
+	{
+		p = p->next;
+	}
+
+	NODE *tmp = AllocNode(e);
+	tmp->next = p->next;
+	p->next = tmp;
+
+	return true;
+}
+
+///////////////////////////////////////////////////////////头删、尾删、按位置删除
+
+bool DeleteHead(NODE *phead, ElemType *e)    //删除头结点
+{
+	if(phead == NULL || IsEmpty(phead))
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	*e = p->data;
+	phead->next = p->next;
+	free(p);
+
+	return true;
+
+	return Delete(phead, 0, e);
+}
+
+bool DeleteTail(NODE *phead, ElemType *e)   //删除尾节点
+{
+	if(phead == NULL || IsEmpty(phead))
+	{
+	return false;
+	}
+
+	NODE *p = phead->next;
+	NODE *s = phead;
+	while(p->next != NULL)
+	{
+	s = p;
+	p = p->next;
+	}
+
+	*e = p->data;
+	s->next = NULL;
+	free(p);
+
+	return true;
+
+	return Delete(phead, GetLength(phead) - 1, e);
+}
+
+bool Delete(NODE *phead, int pos, ElemType *e)         //删除指定位置节点
+{
+	if(phead == NULL || pos < 0 || pos >= GetLength(phead) || IsEmpty(phead))
+	{
+		return false;
+	}
+
+	NODE *p = phead;
+	for(int i = 0; i < pos; i++)
+	{
+		p = p->next;
+	}
+	NODE *s = p->next;
+	*e = s->data;
+	p->next = s->next;
+	free(s);
+
+	return true;
+}
+
+////////////////////////////////////////////////////由值查找序号，由值删除该节点
+
+int GetPos(NODE *phead, ElemType e)   //查找值e节点数
+{
+	if(phead == NULL || IsEmpty(phead))
+	{
+		return -1;
+	}
+
+	NODE *p = phead;
+	int i = 0;
+	while(p->next != NULL)
+	{
+		if(p->data == e)
+		{
+			return i - 1;
+		}
+		i++;
+		p = p->next;
+	}
+
+	return -1;
+}
+
+bool DeleteByValue(NODE *phead, ElemType e)  //根据值删除节点
+{
+	return Delete(phead, GetPos(phead, e), &e); 
+}
+
+//////////////////////////////////////////////////////////置值PUT/GET放值
+
+bool Put(NODE *phead, int pos, ElemType e)    //将e放到特定节点
+{
+	if(phead == NULL || pos < 0 || pos >= GetLength(phead) || IsEmpty(phead))
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	for(int i = 0; i < pos; i++)
+	{
+		p = p->next;
+	}
+	p->data = e;
+
+	return true;
+}
+
+bool Get(NODE *phead, int pos, ElemType *e)       //得到特定的节点的值
+{
+	if(phead == NULL || pos < 0 || pos >= GetLength(phead) || IsEmpty(phead))
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	for(int i = 0; i < pos; i++)
+	{
+		p = p->next;
+	}
+	*e = p->data;
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////冒泡排序
+
+bool Sort(NODE *phead)       //排序
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return false;
+	}
+
+	ElemType tmp = 0;
+	for (int i = 0; i < GetLength(phead) - 1; i++)
+	{
+		bool flag = true;
+		NODE *p = phead->next;
+		while(p->next != NULL)
+		{
+			if(p->data > p->next->data )
+			{
+				flag = false;
+				tmp = p->data;
+				p->data = p->next->data;
+				p->next->data = tmp;
+			}
+			p = p->next;
+		}
+
+		if(flag)
+		{
+			break;
+		}
+	}
+
+	return true;
+}
+
+bool SortChangeNode(NODE *phead)  //交换节点的冒泡排序
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return false;
+	}
+
+	
+	for (int i = 0; i < GetLength(phead) - 1; i++)
+	{
+		NODE *q = phead;
+		NODE *p = phead -> next;
+		NODE *s = p -> next;
+		for(int j = 0;j < GetLength(phead) - i + 1;j++)
+		{
+			if(p->data > s -> data)
+			{
+				p -> next = s -> next;
+				s -> next = p;
+				q -> next = s;
+			}
+			q = p;
+			p = s;
+			s = s -> next;
+		}
+	}
+
+	return true;
+}
+
+/////////////////////////////////////////////////////////////在一个值的前插。后插，两边插
+
+bool InsertLeft(NODE *phead, ElemType e, ElemType value)   //将value插入到e值的前面
+{
+	return Insert(phead, GetPos(phead, e), value);
+}
+
+
+bool InsertRight(NODE *phead, ElemType e, ElemType value)   //将value插入到e值的后面
+{
+	int pos = GetPos(phead, e);
+	if (pos == -1)
+	{
+		return false;
+	}
+	return Insert(phead, pos + 1, value);
+}
+
+bool InsertBoth(NODE *phead, ElemType e, ElemType value)    //将value插入到e值的两边
+{
+	return InsertRight(phead, e, value) && InsertLeft(phead, e, value);
+}
+
+////////////////////////////////////////////////////////////////查值，返回地址
+
+NODE *GetAddress(NODE *phead, ElemType e)  //得到e的前一个节点的地址
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return NULL;
+	}
+
+	NODE *p = phead;
+	while(p->next != NULL)
+	{
+		if (p->next->data == e)
+		{
+			return p;
+		}
+		p = p->next;
+	}
+
+	return NULL;
+}
+
+///////////////////////////////////////////////////////////////////合并4种
+
+bool MergerLink_1(NODE *Aphead, NODE *Bphead, NODE *Cphead)//两两比较A,B，较小的头删，然后得到值尾插进C。
+{
+	if (Aphead == NULL || Bphead == NULL || (IsEmpty(Aphead) && IsEmpty(Bphead)))
+	{
+		return false;
+	}
+
+	ElemType e = 0;
+	while(!IsEmpty(Aphead) && !IsEmpty(Bphead))
+	{
+		if(Aphead->next->data <= Bphead->next->data)
+		{
+			DeleteHead(Aphead, &e);
+			InsertTail(Cphead, e);
+		}
+		else
+		{
+			DeleteHead(Bphead, &e);
+			InsertTail(Cphead, e);
+		}	
+	}
+	if (!IsEmpty(Aphead))
+	{
+		while(!IsEmpty(Aphead))
+		{
+			DeleteHead(Aphead, &e);
+		    InsertTail(Cphead, e);
+		}
+	}
+	else
+	{
+		while(!IsEmpty(Bphead))
+		{
+			DeleteHead(Bphead, &e);
+			InsertTail(Cphead, e);
+		}
+	}
+
+
+	return true;
+}
+
+
+
+bool MergerLink_2(NODE *Aphead, NODE *Bphead, NODE *Cphead)   //将A,B一股脑，通过循环全部头删再，尾插进C，
+{                                                             //  最后C排序。
+	if (Aphead == NULL || Bphead == NULL || (IsEmpty(Aphead) && IsEmpty(Bphead)))
+	{
+		return false;
+	}
+
+	ElemType e = 0;
+	while(!IsEmpty(Aphead))
+	{
+		DeleteHead(Aphead, &e);
+		InsertTail(Cphead, e);
+	}
+	while(!IsEmpty(Bphead))
+	{
+		DeleteHead(Bphead, &e);
+		InsertTail(Cphead, e);
+	}
+	Sort(Cphead);
+	
+	return true;
+}
+                                         
+                                                            //既然A,B都在堆里，而且各自成一个链表，不用什么删除插入的方法                                         
+bool MergerLink_3(NODE *Aphead, NODE *Bphead, NODE *Cphead) // 把A的头结点换成C，再将C的尾巴连到B上。
+{
+	if (Aphead == NULL || Bphead == NULL || (IsEmpty(Aphead) && IsEmpty(Bphead)))
+	{
+		return false;
+	}
+
+	Cphead->next = Aphead->next;  //将A原链表换头结点。
+	Aphead->next = NULL;
+
+	NODE *p = Cphead;
+	while(p->next != NULL)
+	{
+		p = p->next;
+	}
+	p->next = Bphead->next;
+	Bphead->next = NULL;
+
+	Sort(Cphead);
+
+	return true;
+}
+
+bool MergerLink_4(NODE *Aphead, NODE *Bphead)   //相当于C = A = A + B;将B按位置插入A。
+{
+	if (Aphead == NULL || Bphead == NULL || (IsEmpty(Aphead) && IsEmpty(Bphead)))
+	{
+		return false;
+	}
+	ElemType e = 0;
+	if (IsEmpty(Aphead))
+	{
+		Aphead->next = Bphead;
+		DeleteHead(Aphead, &e);
+		return true;
+	}
+	if (IsEmpty(Bphead))
+	{
+		return true;
+	}
+
+	 NODE *p = Aphead->next;
+
+	//NODE *s = Aphead;                        实现1
+	//while (!IsEmpty(Bphead) && p != NULL)
+	//{
+	//	if (p->data < Bphead->next->data)
+	//	{
+	//		s = p;
+	//		p = p->next;
+	//	}
+	//	else
+	//	{
+	//		NODE *tmp =  Bphead->next;  //把B头结点断开
+	//		Bphead->next = tmp->next;
+	//		
+	//		tmp->next = p;
+	//		s->next = tmp;
+	//		s = s->next;
+	//	}
+	//}
+	//while (!IsEmpty(Bphead))
+	//{
+	//	DeleteHead(Bphead, &e);
+	//	InsertTail(Aphead, e);
+	//}
+
+	 while (!IsEmpty(Bphead) && p != NULL)  //编法2
+	 {
+		 if (p->data < Bphead->next->data)
+		 {
+			 p = p->next;
+		 }
+		 else
+		 {
+			DeleteHead(Bphead, &e);
+			InsertLeft(Aphead, p->data, e);
+		 }
+	 }
+	 while (!IsEmpty(Bphead))
+	 {
+		 DeleteHead(Bphead, &e);
+		 InsertTail(Aphead, e);
+	 }
+
+	return true;
+}
+
+/////////////////////////////////////////////////逆置
+
+bool Reverse_1(NODE *phead)  //笨方法，开辟另一个节点，将A尾删，尾插进去，在换头节点，销毁这个节点。
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return false;
+	}
+	if (GetLength(phead) == 1)
+	{
+		return true;
+	}
+
+	NODE *p = InitLink();
+	ElemType e = 0;
+	while(!IsEmpty(phead))
+	{
+		DeleteTail(phead, &e);
+		InsertTail(p, e);
+	}
+	phead->next = p->next;
+	p->next = NULL;
+	free(p);
+
+	return true;
+}
+
+bool Reverse_2(NODE *phead)  //尾删，按照POS，循环插入自身
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return false;
+	}
+	if (GetLength(phead) == 1)
+	{
+		return true;
+	}
+
+	ElemType e = 0;
+	for (int i = 0; i < GetLength(phead);i++)
+	{
+		DeleteTail(phead, &e);
+		Insert(phead, i, e);
+	}
+
+	return true;
+}
+
+
+bool Reverse_3(NODE *phead)   //直接交换节点数据。
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return false;
+	}
+	if (GetLength(phead) == 1)
+	{
+		return true;
+	}
+
+	ElemType tmp = 0;
+	NODE *s = phead->next;
+	for(int i = 0; i < GetLength(phead) / 2; i++)
+	{
+		NODE *p = phead;
+		for (int j = 0; j < GetLength(phead) - i; j++)
+		{
+			p = p->next;
+		}
+		tmp = s->data;
+		s->data = p->data;
+		p->data = tmp;
+		s = s->next;
+	}
+
+	return true;
+}
+
+
+NODE *Reverse_4(NODE *phead)   //简单粗暴的改变指向。
+{
+	if (phead == NULL || IsEmpty(phead))
+	{
+		return NULL;
+	}
+	if (GetLength(phead) == 1)
+	{
+		return phead;
+	}
+
+	NODE *p = phead->next;
+	NODE *s = phead;
+	NODE *tmp = NULL;
+	while(p != NULL)
+	{
+		tmp = p;
+		p = p->next;
+		tmp->next = s;
+		s = tmp;
+	}
+
+	NODE *phead_new = InitLink();  //开新头结点
+	phead_new->next = tmp;
+	phead->next = NULL;
+	ElemType e = 0;
+	DeleteTail(phead_new, &e);
+
+	return phead_new;
+}
+
+
+#include "LinkList.h"
+
+
+int main()
+{
+	NODE *Aphead = InitLink();  //初始化两个链表
+	NODE *Bphead = InitLink();
+	NODE *Cphead = InitLink();
+	InsertHead(Aphead, 80);
+	InsertHead(Aphead, 40);
+	InsertHead(Aphead, 20);
+	InsertHead(Aphead, 90);
+	InsertHead(Aphead, 130);
+	printf("A链表：\n");
+	Show(Aphead, print_int);
+	InsertHead(Bphead, 200);
+	InsertHead(Bphead, 70);
+	InsertHead(Bphead, 60);
+	InsertHead(Bphead, 10);
+	printf("\nB链表：\n");
+	Show(Bphead, print_int);
+
+	SortChangeNode(Aphead);
+	Show(Aphead, print_int);*/
+
+	/*1，将两个有序链表合并为一个有序链表， - 必须完成
+	mergelist(list_node *pa, list_node *pb, list_node *pc)
+	  答：我做了共四种方法：（这里删除基本采用头删，时间复杂度小）
+
+	  （1）bool MergerLink_1(NODE *Aphead, NODE *Bphead, NODE *Cphead);
+	           分析：两两比较A,B，较小的头删，然后得到值尾插进C。
+		   时间复杂度是O（N）
+	  （2）bool MergerLink_2(NODE *Aphead, NODE *Bphead, NODE *Cphead);
+			    分析：将A,B一股脑，通过循环全部头删尾插进C，最后C排序。程序很简单，便于阅读，
+			但是时间复杂度是O（N^2）
+	 （3） bool MergerLink_2(NODE *Aphead, NODE *Bphead, NODE *Cphead);
+	              分析：既然A,B都在堆里，而且各自成一个链表，不用什么删除插入的方法,
+			相当于把A的头结点换成C，再将C的尾巴连到B上。
+			      虽然本方法时间复杂度从大方面讲也是O（N^2）。但是它与方法2比起来，省去大量时间---
+			动态申请节点，释放节点；C链表空间用的是A.B之前的节点。
+
+	  （4）NODE *MergerLink_3(NODE *Aphead, NODE *Bphead);
+		  分析：相当于C = A = A + B;一一比较。
+		        1>.P指针记录大的节点，S记录小的节点，然后改变指向让节点插进来。
+				2>.直接在A找到第一个大的，利用前插函数解决。优点是少开辟一个指针，不用指来指去，操作方便。
+				                                            缺点是里面调用了好几个函数，比较费时。
+		  两种写法时间复杂度都是O(N^2)*/
+		
+	
+
+	/*MergerLink_1(Aphead, Bphead, Cphead); */ //方法1
+	//MergerLink_2(Aphead, Bphead, Cphead);  //方法2
+	//MergerLink_3(Aphead, Bphead, Cphead);  //方法3
+	/*MergerLink_4(Aphead, Bphead);             //方法4
+	printf("\n合并完毕A链表：\n");      
+	Show(Aphead, print_int);
+
+
+
+	/*2，逆置（反转）单链表- 必须完成
+	答：我做了共四种方法：
+		(1)笨方法，开辟另一个头节点，将链表尾删，尾插进新的头结点，最后换成原来头结点，销毁这个新节点。
+			时间复杂度：O(N^2)
+		(2)尾删，按照POS，循环插入自身。时间复杂度：O(N^2)。
+		(3)直接交换节点数据。时间复杂度：O(N^2)。
+		(4)简单粗暴的改变指向。时间复杂度：O(N)。这个方法最优。
+		*/
+	/*Reverse_1(Aphead);*/
+	//Reverse_2(Aphead);
+	//Reverse_3(Aphead);
+	/*Aphead = Reverse_4(Aphead);
+	Show(Aphead, print_int);*/
+
+
+
+	//测试顺序表个函数，测试代码。
+	/*NODE *phead = InitLink();
+
+	InsertHead(phead, 10);
+	InsertHead(phead, 20);
+	InsertHead(phead, 30);
+	InsertHead(phead, 40);
+	InsertTail(phead, -10);
+	InsertTail(phead, -20);
+	InsertTail(phead, -30);
+	printf("插入完毕:\n");
+	Show(phead, print_int);
+	Insert(phead, 4, 890);
+	printf("第四个位置插入890后：\n");
+	Show(phead, print_int);
+	//ElemType e = 56;
+	DeleteHead(phead, &e);
+	printf("头删：\n");
+	Show(phead, print_int);
+
+	DeleteTail(phead, &e);
+	printf("尾删：\n");
+	Show(phead, print_int);
+
+	Delete(phead, 3, &e);
+	printf("删除第3个节点后，：\n");
+	Show(phead, print_int);
+
+	DeleteByValue(phead, 10);
+	printf("删除10后，：\n");
+	Show(phead, print_int);
+	
+	Put(phead, 5, e);
+	printf("将%d置于第五个位置：\n", e);
+	Show(phead, print_int);
+
+	Get(phead, 4, &e);
+	printf("得到第四个位置的值为：%d  \n\n\n", e);
+
+	Sort(phead);
+	Show(phead, print_int);
+
+	InsertRight(phead,8, 100);  //给一个值前or后插入节点
+	Show(phead, print_int);
+	InsertLeft(phead, 890, 100);
+	Show(phead, print_int);
+	InsertBoth(phead, 40, 100);
+	Show(phead, print_int);
+
+	printf("%d  \n", *(ElemType *)GetAddress(phead, 40));*/
+
+/*	Destory(Aphead);
+	Destory(Bphead);
+	Destory(Cphead);
+	return 0;
+}
