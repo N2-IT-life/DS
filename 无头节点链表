@@ -1,0 +1,182 @@
+#ifndef _NOHEADLINK_H_
+#define _NOHEADLINK_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <vld.h>
+
+typedef struct _NODE
+{
+int data;
+struct _NODE *next;
+}NODE;
+
+bool Show(NODE *phead);
+
+NODE *InsertHead(NODE *phead, int e);
+
+NODE *InsertTail(NODE *phead, int e);
+
+NODE *DeleteHead(NODE *phead, int *e);
+
+NODE *DeleteTail(NODE *phead, int *e);
+
+bool Destory(NODE *phead);
+
+
+#endif
+
+#include "NOHEADLINK.h"
+
+
+bool Show(NODE *phead)  //打印无头链表
+{
+if (phead == NULL)
+{
+return false;
+}
+
+NODE *p = phead;
+while (p != NULL)
+{
+printf("%d  ", p->data);
+p = p->next;
+}
+printf("\n");
+
+return true;
+}
+
+
+static NODE *InitNode(int e)
+{
+NODE *tmp = (NODE *)malloc(sizeof(NODE));
+if (tmp == NULL)
+{
+return NULL;
+}
+
+tmp->data = e;
+tmp->next = NULL;
+
+return tmp;
+}
+
+NODE *InsertHead(NODE *phead, int e)  //头插
+{
+NODE *tmp = InitNode(e);
+tmp->next = phead;
+phead = tmp;
+
+return phead;
+}
+
+
+NODE *InsertTail(NODE *phead, int e)//尾插
+{
+NODE *tmp = InitNode(e);
+if (phead == NULL)
+{
+phead = tmp;
+}
+else
+{
+NODE *p = phead;
+while (p->next != NULL)
+{
+p = p->next;
+}
+p->next = tmp;
+}
+
+return phead;
+}
+
+
+NODE *DeleteHead(NODE *phead, int *e)//头删
+{
+if (phead == NULL)
+{
+return NULL;
+}
+
+*e = phead->data;
+NODE *p = phead;
+phead = phead->next;
+free(p);
+
+return phead;
+}
+
+NODE *DeleteTail(NODE *phead, int *e)//尾删
+{
+if (phead == NULL)
+{
+return NULL;
+}
+
+NODE *p = phead;
+if (phead->next == NULL)
+{
+free(p);
+phead = NULL;
+}
+else
+{
+while (p->next->next != NULL)
+{
+p = p->next;
+}
+
+NODE *s = p->next;
+p->next = NULL;
+free(s);
+}
+
+return phead;
+}
+
+
+
+bool Destory(NODE *phead)
+{
+if (phead == NULL)
+{
+return false;
+}
+
+int e = 0;
+while(phead != NULL)
+{
+phead = DeleteHead(phead, &e);
+}
+
+return true;
+}
+
+
+#include "NOHEADLINK.h"
+
+int main()
+{
+NODE *p = NULL;
+
+p = InsertHead(p, 10);
+Show(p);
+p = InsertHead(p, 7);
+Show(p);
+p = InsertHead(p, 2);
+Show(p);
+p = InsertTail(p, 34);
+Show(p);
+p = InsertTail(p, 78);
+Show(p);
+
+int e = 0;
+p = DeleteHead(p, &e);
+p = DeleteTail(p, &e);
+Show(p);
+
+Destory(p);
+return 0;
+}
