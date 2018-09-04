@@ -1,0 +1,236 @@
+//一元多项式相加
+//(1).pc = pa +pb,pa,pb 不改变。(2).pa = pa + pb;在AddPolyEX中
+
+typedef struct _NODE
+{
+	int coef;
+	int exp;
+	struct _NODE *next;
+}NODE;
+
+NODE *InitLink() //初始化链表
+{
+	NODE *phead = (NODE *)malloc(sizeof(NODE));
+	if (phead == NULL)
+	{
+		return NULL;
+	}
+
+	phead->coef = 0;
+	phead->exp = 0;
+	phead->next = NULL;
+
+	return phead;
+}
+
+NODE *Alloc(int coef, int exp)
+{
+	NODE *tmp = (NODE *)malloc(sizeof(NODE));
+	if (tmp == NULL)
+	{
+		return NULL;
+	}
+
+	tmp->coef = coef;
+	tmp->exp = exp;
+	tmp->next = NULL;
+
+	return tmp;
+}
+
+bool IntitPoly(NODE *phead)  //输入多项式
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	while(1)
+	{
+		int coef;
+		int exp;
+		printf("请输入系数，幂级数， 输入0,0结束：\n");
+		scanf("%d,%d", &coef, &exp);
+		if(coef == 0 && exp == 0)
+		{
+			break;
+		}
+
+		NODE *tmp = Alloc(coef, exp);
+		NODE *p = phead;
+		while (p->next != NULL)
+		{
+			if(p->next->exp > exp)
+			{
+				break;
+			}
+			p = p->next;
+		}
+		tmp->next = p->next;
+		p->next = tmp;
+	}
+
+	return true;
+}
+
+bool InsertTail(NODE *phead, int coef, int exp)
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *tmp = Alloc(coef, exp);
+	NODE *p = phead;
+	while(p->next != NULL)
+	{
+		p = p->next;
+	}
+	p->next = tmp;
+
+	return true;
+}
+
+NODE *AddPoly(NODE *pa, NODE *pb)//加法1
+{
+	if (pa == NULL || pb == NULL)
+	{
+		return NULL;
+	}
+
+	NODE *a = pa->next;
+	NODE *b = pb->next;
+	NODE *pc = InitLink();
+	while(a != NULL && b != NULL)
+	{
+		if (a->exp == b->exp)
+		{
+			if (a->coef +  b->coef != 0)
+			{
+				InsertTail(pc, a->coef +  b->coef, a->exp);
+			}
+			a = a->next;
+			b = b->next;
+		}
+		else if (a->exp < b->exp)
+		{
+			InsertTail(pc, a->coef, a->exp);
+			a = a->next;
+		}
+		else
+		{
+			InsertTail(pc, b->coef, b->exp);
+			b = b->next;
+		}
+	}
+	while(a != NULL)
+	{
+		InsertTail(pc, a->coef, a->exp);
+		a = a->next;
+	}
+	while(b != NULL)
+	{
+		InsertTail(pc, b->coef, b->exp);
+		b = b->next;
+	}
+
+	return pc;
+}
+
+NODE *AddPolyEX(NODE *pa, NODE *pb)//加法2
+{
+	if (pa == NULL || pb == NULL || pb->next == NULL)
+	{
+		return pa;
+	}
+
+	NODE *a = pa;
+	NODE *b = pb->next;
+	while(a->next != NULL && b != NULL)
+	{
+		if (a->next->exp == b->exp)
+		{
+			if (a->next->coef +  b->coef != 0)
+			{
+				a->next->coef +=  b->coef;
+			}
+			a = a->next;
+			b = b->next;
+		}
+		else if (a->next->exp > b->exp)
+		{
+			NODE *tmp = Alloc(b->coef, b->exp);
+			tmp->next = a->next;
+			a->next = tmp;
+			a = a->next;
+			b = b->next;
+		}
+		else 
+		{
+			a = a->next;
+			
+		}
+	}
+	while (b != NULL)
+	{
+		InsertTail(pa, b->coef, b->exp);
+		b = b->next;
+	}
+
+	return pa;
+}	
+
+void Show(NODE *phead)
+{
+	if (phead == NULL || phead->next == NULL)
+	{
+		return;
+	}
+
+	NODE *p = phead->next;
+	while(p != NULL)
+	{
+		printf(" + (%dx^%d) ", p->coef, p->exp);
+		p = p->next;
+	}
+	printf("\n");
+}
+
+bool Destoy(NODE *phead)
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	while(p != NULL)
+	{
+		NODE *s = p;
+		p = p->next;
+		free(s);
+	}
+
+	free(phead);
+	return true;
+}
+
+int main()
+{
+	NODE *pa = InitLink();
+	NODE *pb = InitLink();
+	//NODE *pc = InitLink();
+
+	IntitPoly(pa);
+	IntitPoly(pb);
+	//pc = AddPoly(pa, pb);
+	Show(pa);
+	Show(pb);
+	pa = AddPolyEX(pa, pb);
+	Show(pa);
+	//Show(pc);
+	Destoy(pa);
+	Destoy(pb);
+	//Destoy(pc);
+	return 0;
+}
