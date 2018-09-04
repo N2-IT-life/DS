@@ -1,0 +1,203 @@
+#ifndef _SEQSTACK_H_
+#define _SEQSTACK_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <vld.h>
+
+#define  MAXSIZE 10
+typedef int elem_type;
+
+typedef struct _SEQSTACK
+{
+	elem_type *data;
+	int total;
+	int length;
+}SEQSTACK;
+
+
+SEQSTACK *InitStack();
+bool DestoryStack(SEQSTACK *pstack);
+
+bool Put(SEQSTACK *pstack, elem_type e);
+bool Get(SEQSTACK *pstack, elem_type *e);
+
+bool IsEmpty(SEQSTACK *pstack);
+bool IsFull(SEQSTACK *pstack);
+int GetLength(SEQSTACK *pstack);
+
+void Show(SEQSTACK *pstack);
+
+bool Push(SEQSTACK *pstack, elem_type e);
+bool Pop(SEQSTACK *pstack, elem_type *e);
+
+
+#endif
+
+
+
+#include "SEQSTACK.h"
+
+SEQSTACK *InitStack()  //初始化不定长顺序栈
+{
+	SEQSTACK *pstack = (SEQSTACK *)malloc(sizeof(SEQSTACK));
+	assert(pstack != NULL);
+
+	pstack->data = (elem_type *)malloc(sizeof(elem_type) * MAXSIZE);
+	pstack->total = MAXSIZE;
+	pstack->length = 0;
+
+	return pstack;
+}
+
+
+bool DestoryStack(SEQSTACK *pstack)  //销毁栈
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	free(pstack->data);
+	free(pstack);
+
+	return true;
+}
+
+bool Put(SEQSTACK *pstack, elem_type e) // 将栈顶的值置为e
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return false;
+	}
+
+	pstack->data[pstack->length -  1] = e;
+
+	return true;
+}
+
+
+bool Get(SEQSTACK *pstack, elem_type *e) //得到栈顶值
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return false;
+	}
+
+	*e = pstack->data[pstack->length -  1];
+
+	return true;
+}
+
+bool IsEmpty(SEQSTACK *pstack)  //判空
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	return pstack->length == 0;
+}
+
+bool IsFull(SEQSTACK *pstack) //判满
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	return pstack->length == pstack->total;
+}
+
+int GetLength(SEQSTACK *pstack)  //得到长度
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	return pstack->length;
+}
+
+void Show(SEQSTACK *pstack) //打印栈
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return ;
+	}
+
+	for(int i = pstack->length - 1; i >= 0; i--)
+	{
+		printf("%d ", pstack->data[i]);
+	}
+	printf("\n");
+}
+
+static SEQSTACK *Inc(SEQSTACK *pstack)//为什么返回static？？？？
+{
+	if (pstack == NULL || pstack->data == NULL)
+	{
+		return NULL;
+	}
+
+	pstack->data = (elem_type *)realloc(pstack->data, sizeof(elem_type) * pstack->total * 2);
+	if (pstack->data == NULL)
+	{
+		return NULL;
+	}
+	pstack->total *= 2;
+
+	return pstack;
+}
+
+bool Push(SEQSTACK *pstack, elem_type e) //入栈
+{
+	if (pstack == NULL)
+	{
+		return false;
+	}
+
+	if (IsFull(pstack))  //判断是否满了
+	{
+		pstack = Inc(pstack);
+	}
+	pstack->data[pstack->length] = e;
+	pstack->length++;
+
+	return true;
+}
+
+bool Pop(SEQSTACK *pstack, elem_type *e)   //出栈
+{
+	if (pstack == NULL || IsEmpty(pstack))
+	{
+		return false;
+	}
+
+	*e = pstack->data[pstack->length - 1];
+	pstack->length--;
+
+
+	return true;
+}
+
+
+#include "SEQSTACK.h"
+
+int main()
+{
+	int num = 12345;
+	SEQSTACK *pstack = InitStack();
+
+	while(num)
+	{
+		Push(pstack, num % 10);
+		num /= 10;
+	}
+
+	Show(pstack);
+
+	DestoryStack(pstack);
+	return 0;
+}
