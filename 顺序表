@@ -1,0 +1,592 @@
+#ifndef _SEQLIST_H_
+#define _SEQLIST_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+
+#define MAXSIZE 10
+#define ERR 0
+
+typedef int ElemType;
+
+typedef struct _SEQ
+{
+	ElemType *data;
+	int total;
+	int length;
+}SEQ;
+
+////创建，打印，销毁
+SEQ *InitSeqlist();
+
+bool PrintSeqlist(SEQ *p);
+
+bool Destory(SEQ *p);
+
+////判断满、空
+bool IsFull(SEQ *p);
+
+bool IsEmpty(SEQ *p);
+
+////顺序表长度、顺序表清0
+int GetLenth(SEQ *p);
+
+bool Clear(SEQ *p);
+
+////置值、得值
+bool Put(SEQ *p, int pos, ElemType *e);
+
+bool Get(SEQ *p, int pos, ElemType *e);
+
+////插入
+bool InsertHead(SEQ *p, ElemType *e);
+
+bool InsertTail(SEQ *p, ElemType *e);
+
+bool InsertByPos(SEQ *p, int pos, ElemType *e);
+
+////排序、查找
+bool SortSeqlist(SEQ *p);
+
+int SearchByValue(SEQ *p, ElemType *e);
+
+////删除
+bool DeleteHead(SEQ *p, ElemType *e);
+
+bool DeleteTail(SEQ *p, ElemType *e);
+
+bool DeleteByPos(SEQ *p, int pos, ElemType *e);
+
+bool DeleteByValue(SEQ *p, ElemType *e);
+
+////分割、合并
+SEQ *SplitSeqlist(SEQ *p);
+
+bool MegerSeqlist(SEQ *p1, SEQ *p2);
+
+#endif
+
+
+
+
+#include "seqlist.h"
+
+
+////创建、打印、销毁
+SEQ *InitSeqlist()           //申请两个空间，初始化
+{
+	SEQ *p = (SEQ *)malloc(sizeof(SEQ));
+	assert(p != NULL);
+
+	p->data = (ElemType *)malloc(sizeof(ElemType) * MAXSIZE);
+	assert(p->data != NULL);
+
+	p->total = MAXSIZE;
+	p->length = 0;
+
+	return p;
+}
+
+
+bool PrintSeqlist(SEQ *p)       //打印顺序表
+{
+	if(p == NULL)
+	{
+		return false;
+	}
+
+	printf("\n这个顺序表最大长度：%d  目前长度：%d\n元素为：", p->total, p->length);
+	for(int i = 0; i < p->length; i++)
+	{
+		printf("%d  ", p->data[i]);
+	}
+	printf("\n");
+
+	return true;
+}
+
+
+bool Destory(SEQ *p)                //销毁顺序表
+{
+	if(p == NULL || p->data == NULL)
+	{
+		printf("销毁失败！\n");
+		return false;
+	}
+
+	free(p->data);
+	p->data = NULL;
+	free(p);
+	p = NULL;
+	
+	return true;
+}
+
+
+////判断空、满
+bool IsFull(SEQ *p)                 //判断是否为满
+{
+	if(p == NULL)
+	{
+		return false;
+	}
+
+	return p->length == p->total ? true : false;
+}
+
+
+bool IsEmpty(SEQ *p)                //判断是否为空
+{
+	if(p == NULL)
+	{
+		return false;
+	}
+
+	return p->length == 0 ? true : false;
+}
+
+////顺序表长度、顺序表清0
+int GetLenth(SEQ *p)                     //得到长度
+{
+	if(p == NULL)
+	{
+		return 0;
+	}
+
+	return p->length;
+}
+
+
+bool Clear(SEQ *p)               //清0顺序表
+{
+	if(p == NULL)
+	{
+		return false;
+	}
+
+	p->length = 0;
+
+	return true;
+}
+
+
+/////置值、得值
+bool Put(SEQ *p, int pos, ElemType *e)          //置特定的位置值为*e
+{
+	if( p == NULL || pos < 1 || pos > p->length )
+	{
+		return false;
+	}
+
+	p->data[pos - 1] = *e;
+
+	return true;
+}
+
+
+bool Get(SEQ *p, int pos, ElemType *e)            //得到特定位置的值放到*e
+{
+	if( p == NULL || pos < 1 || pos > p->length)
+	{
+		return false;
+	}
+
+	*e = p->data[pos - 1];
+
+	return true;
+}
+
+
+//////////////插入
+bool InsertHead(SEQ *p, ElemType *e)     //头插
+{
+	/*if(IsFull(p))
+	{
+		return false;
+	}
+
+	for(int i = p->length - 1 ; i >= 0; i--)
+	{
+		p->data[i + 1] = p->data[i]; 
+	}
+	p->data[0] = *e;
+	p->length++;
+*//*
+	return InsertByPos(p, 1, e);
+}
+
+
+bool InsertTail(SEQ *p, ElemType *e)       //尾插
+{
+	/*if(IsFull(p))
+	{
+		return false;
+	}
+
+	p->data[p->length] = *e;
+	p->length++;*//*
+
+	return InsertByPos(p, p->length + 1, e);
+}
+
+
+bool InsertByPos(SEQ *p, int pos, ElemType *e)   //按位置插入
+{
+	if( pos > p->length + 1 || pos < 1)
+	{
+		return false;
+	}
+	if(IsFull(p))                            //如果满了，扩展空间
+	{
+		p->data = (ElemType *)realloc(p->data, sizeof(ElemType) * p->total * 2);
+		p->total *= 2;
+	}
+
+	for(int i = p->length - 1; i >= pos - 1; i--)
+	{
+		p->data[i + 1] = p->data[i]; 
+	}
+	p->data[pos - 1] = *e;
+	p->length++;
+
+	return true;
+}
+
+
+
+////////排序、查找
+bool SortSeqlist(SEQ *p)    //冒泡排序顺序表 ps:冒泡，交换，选择排序的时间复杂度都是O（N^2）
+{
+	if(p == NULL)           //冒泡排序改进版
+	{
+		return false;
+	}
+
+	ElemType tmp = 0;
+	for(int i = 0; i < p->length - 1; i++)
+	{
+		bool flag = true;
+		for(int j = 0; j < p->length - 1 - i; j++)
+		{
+			if(p->data[j] > p->data[j + 1])
+			{
+				flag = false;
+				tmp = p->data[j];
+				p->data[j] = p->data[j + 1];
+				p->data[j + 1] = tmp;
+			}
+		}
+		if(flag)
+		{
+			break;
+		}
+	}
+
+	return true;
+}
+
+int SearchByValue(SEQ *p, ElemType *e)      //二分查找
+{
+	if(p == NULL)
+	{
+		return ERR;
+	}
+
+	SortSeqlist(p);
+
+	int left = 0;
+	int right = p->length - 1;
+
+	while(left <= right)
+	{
+		int mid = (left + right) / 2;
+		if(p->data[mid] == *e)
+		{
+			return mid + 1;
+		}
+		else if(p->data[mid] > *e)
+		{
+			right = mid - 1;
+		}
+		else
+		{
+			left = mid + 1;
+		}
+	}
+
+	return NULL;
+}
+
+////删除
+
+bool DeleteHead(SEQ *p, ElemType *e)     //删除头,并将它放到e
+{
+	/*if(p == NULL || IsEmpty(p))
+	{
+		return false;
+	}
+
+	*e = p->data[0];
+	for(int i = 0; i < p->length - 1; i++)
+	{
+		p->data[i] = p->data[i + 1];
+	}
+	p->length--;*//*
+
+	return DeleteByPos(p, 1,e);
+}
+
+
+bool DeleteTail(SEQ *p, ElemType *e)      //删除尾巴，并将之放到e
+{
+	/*if(p == NULL || IsEmpty(p))
+	{
+		return false;
+	}
+
+	*e = p->data[p->length - 1];
+	p->length--;*//*
+
+	return DeleteByPos(p, p->length,e);
+}
+
+bool DeleteByPos(SEQ *p, int pos, ElemType *e)   //删除特定位置，放到e
+{
+	if(p == NULL || IsEmpty(p) || pos > p->length|| pos < 1 )
+	{
+		return false;
+	}
+
+	*e = p->data[pos - 1];
+	for(int i = pos - 1; i < p->length - 1; i++)
+	{
+		p->data[i] = p->data[i + 1];
+	}
+	p->length--;
+
+	return true;
+}
+
+bool DeleteByValue(SEQ *p, ElemType *e)    //按照值删除
+{
+	return DeleteByPos(p, SearchByValue(p, e), e);
+}
+
+////分割、合并
+SEQ *SplitSeqlist(SEQ *p)   //分割
+{
+	if(p == NULL)
+	{
+		return NULL;
+	}
+
+	SEQ *pp = InitSeqlist();
+
+	int num = p->length / 2;
+	ElemType e = 0;
+	for(int i = 0; i < num; i++)
+	{
+		DeleteTail(p, &e);
+		InsertHead(pp, &e);
+	}
+
+	return pp;
+}
+
+bool MegerSeqlist(SEQ *p1, SEQ *p2)   //合并
+{
+	if(p1 == NULL || p2 == NULL)
+	{
+		return false;
+	}
+   
+	int num = p2->length;
+	ElemType e = 0;
+	for(int i = 0; i < num; i++)
+	{
+		DeleteHead(p2, &e);
+		InsertTail(p1, &e);
+	}
+
+	return Destory(p2);
+}
+
+#include "seqlist.h"
+
+int main()
+{
+	1.利用顺序表的基本运算，实现如果在顺序表A 中出现的元素，在顺序表B 中也出现，则将A
+		中该元素删除。
+		SEQ *A = InitSeqlist();
+	SEQ *B = InitSeqlist();
+
+	for(int i = 0; i < 5; i++) //给A.B数据信息
+	{
+		InsertHead(A, &i);
+		InsertHead(B, &i);
+	}
+	ElemType value = 31;
+	Put(B, 1, &value);
+	value = 65;
+	Put(B, 3, &value);
+	value = 24;
+	Put(B, 5, &value);
+	PrintSeqlist(A);
+	PrintSeqlist(B);
+
+	ElemType val = 0;                          //正正开始检测，删除
+	for(int i = 0; i < B->length; i++)
+	{
+		Get(B, i + 1, &val);
+		DeleteByValue(A, &val);
+	}
+	PrintSeqlist(A);
+	PrintSeqlist(B);
+
+
+	2.顺序表A 和顺序表B 的元素都是非递减排列，利用线性表的基本运算，将它们合并成一个顺
+		序表C，要求C 也是非递减排列。例如，A=（6，11，11，23），B=（2，10，12，12，21），
+		则C=（2，6，10，11，11，12，12，21，23）。
+		SEQ *A = InitSeqlist();
+	SEQ *B = InitSeqlist();
+	SEQ *C = InitSeqlist();
+	ElemType arr[] = {6, 11, 11, 23, 2, 10, 12,12, 21};
+	for(int i = 0; i < sizeof(arr) / sizeof(ElemType); i++)
+	{
+		if(i < 4)
+		{
+			InsertTail(A, &arr[i]);
+		}
+		else
+		{
+			InsertTail(B, &arr[i]);
+		}
+	}
+	PrintSeqlist(A);
+	PrintSeqlist(B);
+
+	int i= 0; 
+	int j = 0;
+	while(i < A->length || j < B->length)
+	{
+		if(A->data[i] <= B->data[j] && i < A->length && j < B->length)
+		{
+			InsertTail(C, &A->data[i]);
+			i++;
+		}
+		else if(i < A->length && j < B->length)
+		{
+			InsertTail(C, &B->data[j]);
+			j++;
+		}
+		else if(i < A->length)
+		{
+			InsertTail(C, &A->data[i]);
+			i++;
+		}
+		else
+		{
+			InsertTail(C, &B->data[j]);
+			j++;
+		}
+	}
+	PrintSeqlist(C);
+
+	//测试顺序表各函数正确性
+	//ElemType e = 100;
+	//SEQ *s = InitSeqlist();
+	//if(s)
+	//{
+	//	printf("***************顺序表创建成功！\n\n");
+	//}
+
+	//for(int i = 0; i < 7; i++)  //先放7个数据供后面操作
+	//{
+	//	s->data[i] = i + 1;
+	//	s->length++;
+	//}
+	//PrintSeqlist(s);
+
+	//if(IsFull(s))                       //判断顺序表空和满   
+	//{
+	//	printf("这个顺序表满了！\n");
+	//}
+	//else
+	//{
+	//	printf("\n\n这个顺序表不为满！\n");
+	//}
+
+	//if(IsEmpty(s))
+	//{
+	//	printf("这个顺序表空了！\n");
+	//}
+	//else
+	//{
+	//	printf("这个顺序表不为空！\n");
+	//}
+
+	//InsertHead(s, &e);    //头插e
+	//printf("\n头插：");
+	//PrintSeqlist(s);
+
+	//e = 67;
+	//InsertTail(s, &e);    //尾插e
+	//printf("\n尾插：");
+	//PrintSeqlist(s);
+
+	//e = 25;
+	//InsertByPos(s, 4, &e);    //将e插到第四个位置
+	//printf("\n将%d插到第四个位置：", e);
+	//PrintSeqlist(s);
+
+	//Get(s, 2, &e);            //得到第二个值并放到e中
+	//printf("\n顺序表第二个值为：%d\n", e);
+
+	//Put(s, 3, &e);           //将第三个值置为第二个值
+	//printf("\n将第三个值置为第二个值后：");
+	//PrintSeqlist(s);
+
+	//SortSeqlist(s);             //排序
+	//printf("\n顺序表排序完为：");
+	//PrintSeqlist(s);
+
+	//printf("\n%d在顺序表的第%d个位置。\n", e, SearchByValue(s, &e));  //二分查找位置
+
+	//DeleteHead(s,&e); //头删
+	//printf("\n头删后顺序表信息为：");
+	//PrintSeqlist(s);
+
+	//DeleteTail(s,&e);  //尾删
+	//printf("\n尾删后顺序表信息为：");
+	//PrintSeqlist(s);
+
+	//DeleteByPos(s, 3, &e);    //删除指定位置的值，放到e中
+	//printf("\n删除第3个位置%d,顺序表：", e);
+	//PrintSeqlist(s);
+
+	//e = 5;
+	//DeleteByValue(s, &e);
+	//printf("\n删除指定值%d,顺序表：", e);
+	//PrintSeqlist(s);
+
+	////Clear(s);          //给顺序表清0，便于后面分割合并操作
+	////printf("\n\n顺序表s清0后：");
+	////PrintSeqlist(s);
+
+	//SEQ *ss = SplitSeqlist(s);   //分割一半给s
+	//printf("\n分割顺序表s给ss后：s和ss分别为：");	
+	//PrintSeqlist(s);
+	//PrintSeqlist(ss);
+
+	//   MegerSeqlist(s, ss);  //合并s.p给p
+	//printf("\n合并s给ss后：s为：");
+	//PrintSeqlist(s);
+
+	//if(Destory(s))  //销毁顺序表
+	//{
+	//	printf("\n***************顺序表销毁成功！\n");
+	//}
+	return 0;
+}
