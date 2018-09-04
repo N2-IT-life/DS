@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <vld.h>
+
+#define ERROR -1
+
+typedef struct _NODE
+{
+	int id;
+	struct _NODE *priv;
+	struct _NODE *next;
+}NODE;
+
+bool Show(NODE *phead, int n)
+{
+	if (phead == NULL || phead->next == NULL)
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	for(int i = 0; i < n; i++)
+	{
+		printf(" %d  ", p->id);
+		p = p->next;
+	}
+	printf("\n");
+
+	return true;
+}
+
+NODE *InitLink()  //初始化双链表
+{
+	NODE *phead = (NODE *)malloc(sizeof(NODE));
+	if(phead == NULL)
+	{
+		return NULL;
+	}
+
+	phead->id = -1;
+	phead->priv = NULL;
+	phead->next = NULL;
+
+	return phead;
+}
+
+NODE *Alloc(int e)   //申请节点
+{
+	NODE *tmp = (NODE *)malloc(sizeof(NODE));
+	if(tmp == NULL)
+	{
+		return NULL;
+	}
+
+	tmp->id = e;
+	tmp->priv = NULL;
+	tmp->next = NULL;
+
+	return tmp;
+}
+
+
+bool Create(NODE *phead, int n)//创建约瑟夫环
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	for (int i = n; i > 0; i--)
+	{
+		NODE *tmp = Alloc(i);
+		tmp->next = phead->next;
+		tmp->priv = phead;
+		if (phead->next != NULL)
+		{
+			tmp->next->priv = tmp;
+		}
+		phead->next = tmp;
+	}
+
+	NODE *p = phead->next;
+	while(p->next != NULL)
+	{
+		p = p->next;
+	}
+	p->next = phead->next;
+	phead->next->priv = p;
+
+	return true;
+}
+
+
+int	Kill(NODE *phead, int m)//进行报数出局
+{
+	if (phead == NULL || phead->next == NULL)
+	{
+		return ERROR;
+	}
+
+	NODE *p = phead->next;
+	NODE *s = NULL;
+	while (!(p->next == p && p->priv == p))//只剩下一个人
+	{
+		for (int i = 1; i < m; i++)
+		{
+			p = p->next;
+		}
+		s = p;
+		p->priv->next = p->next;
+		p->next->priv = p->priv;
+		p = p->next;
+		printf(" 出局者：  %d \n", s->id);
+		free(s);
+	}
+	int rs = p->id;
+	free(p);
+	free(phead);
+
+	return rs;
+}
+
+int main()
+{
+	int n = 41;
+	int m = 3;
+	NODE *p = InitLink();
+
+	Create(p, n);
+	Show(p, n);
+	int rs = Kill(p, m);
+	printf("存活者的编号是：%d  \n",rs);
+
+	return 0;
+}
