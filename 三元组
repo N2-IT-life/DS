@@ -1,0 +1,353 @@
+////////////////////.h
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef int ElemType;
+
+typedef struct _TRIP
+{
+	ElemType e1;
+	ElemType e2;
+	ElemType e3;
+}TRIP;
+
+TRIP *InitTrip(ElemType *v1, ElemType *v2, ElemType *v3);
+
+bool DestoryTrip(TRIP *T);
+
+bool PrintTrip(TRIP *T);
+
+bool Get(TRIP *T, int i, ElemType *v);
+
+bool Put(TRIP *T, int i, ElemType *v);
+
+bool IsAscending(TRIP *T);
+
+bool IsDescending(TRIP *T);
+
+bool Max(TRIP *T, ElemType *v);
+
+bool Min(TRIP *T, ElemType *v);
+
+bool Calculate(TRIP *T1, TRIP *T2, char ch);
+
+bool SortTrip(TRIP *T, int n);
+
+bool GetAverage(TRIP *T, ElemType *v, int n);
+
+ElemType CmpTrip(TRIP *T1, TRIP *T2, int n);
+//////////////////////////////////////////////////.main
+#include "trip.h"
+
+int main()
+{
+	ElemType v1 = 100;                 //初始化的三个值
+	ElemType v2 = 20;
+	ElemType v3 = 30;
+	ElemType value = 0;
+	ElemType ave = 0;
+
+	TRIP *T1 = InitTrip(&v1, &v2, &v3);
+	TRIP *T2 = InitTrip(&v1, &v2, &v3);
+
+	PrintTrip(T1);
+	PrintTrip(T2);
+
+	Get(T1, 2,&value);
+	printf("\nthe %dth's value of this trip1 is %d\n", 2, value);
+
+	Put(T1, 3, &value);
+	PrintTrip(T1);
+
+	if(IsAscending(T1))
+	{
+		printf("this trip1 is ascending!\n");
+	}
+	else
+	{
+		printf("\n\nthis trip1 is not ascending!\n");
+	}
+
+	if(IsDescending(T1))
+	{
+		printf("this trip1 is descending!\n");
+	}
+	else
+	{
+		printf("this trip1 is not descending!\n");
+	}
+
+	Max(T1, &value);
+	printf("\nMax : %d\n", value);
+
+	Min(T1, &value);
+	printf("Min : %d\n\n", value);
+
+	Calculate(T1, T2, '+');
+	PrintTrip(T1);
+
+	printf("\nthe sorted trip1 ,trip 2:\n");
+	SortTrip(T1, 3);
+	SortTrip(T2, 3);
+	PrintTrip(T1);
+	PrintTrip(T2);
+
+	GetAverage(T1, &value, 3);
+	printf("\n\nthe trip1 average: %d\n", value);
+	GetAverage(T2, &value, 3);
+	printf("the trip2 average: %d\n", value);
+
+	if(!CmpTrip(T1, T2, 3))
+	{
+		printf("trip1 trip2 is eaqul!\n");
+	}
+	else
+	{
+		printf("\ntrip1 trip2 is dirfferent!\n\n");
+	}
+
+
+	if(DestoryTrip(T1) && DestoryTrip(T2))
+	{
+		T1 = NULL;
+		T2 = NULL;
+	}
+
+	return 0;
+}
+//////////////////////////////.cpp
+#include "trip.h"
+
+TRIP *InitTrip(ElemType *v1, ElemType *v2, ElemType *v3)  //申请加初始化
+{
+	TRIP *T = (TRIP *)malloc(sizeof(TRIP));
+	if(T == NULL)
+	{
+		printf("内存申请失败！\n");
+		exit(-1);
+	}
+
+	T->e1 = *v1;
+	T->e2 = *v2;
+	T->e3 = *v3;
+
+	return T;
+}
+
+bool DestoryTrip(TRIP *T)   //销毁这个结构
+{
+	if(T == NULL)
+	{
+		printf("结构销毁失败！\n");
+		return false;
+	}
+	free(T);
+	return true;
+}
+
+bool PrintTrip(TRIP *T)                        //打印TRIP的三个元素值
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+	printf("the values are: %d  %d %d\n", T->e1, T->e2,T->e3);
+	return true;
+}
+
+bool Get(TRIP *T, int i, ElemType *v)         //得到第i个元素的值
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+	switch(i)
+	{
+		case 1:
+			*v = T->e1;
+			break;
+		case 2:
+			*v = T->e2;
+			break;
+		case 3:
+			*v = T->e3;
+			break;
+		default:
+			return false;
+	}
+
+	return true;
+}
+
+bool Put(TRIP *T, int i, ElemType *v)    //置第i个值为*v
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+	switch(i)
+	{
+		case 1:
+			T->e1 = *v;
+			break;
+		case 2:
+			T->e2 = *v;
+			break;
+		case 3:
+			T->e3 = *v;
+			break;
+		default:
+			return false;
+	}
+
+	return true;
+	
+}
+
+bool IsAscending(TRIP *T)        //判断是否为升序
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+
+	return T->e1 <= T->e2 && T->e2 <= T->e3 ? true : false;
+}
+
+bool IsDescending(TRIP *T)                 //判断是否为降序
+	{
+	if(T == NULL)
+	{
+		return false;
+	}
+
+	return T->e1 >= T->e2 && T->e2 >= T->e3 ? true : false;
+}
+
+bool Max(TRIP *T, ElemType *v)        //找出最大值，存放于*v中
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+	
+	return (*v = T->e1) > T->e2 ? 
+		(*v > T->e3 ? *v : (*v = T->e3)) : 
+		((*v = T->e2) > T->e3 ? *v : (*v = T->e3));;
+}
+
+bool Min(TRIP *T, ElemType *v)          //找出最小值，存放于*v中
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+	
+	return (*v = T->e1) < T->e2 ?
+		(*v < T->e3 ? *v : (*v = T->e3)) :
+		((*v = T->e2) < T->e3 ? *v : (*v = T->e3));;
+}
+
+bool Calculate(TRIP *T1, TRIP *T2, char ch)   //计算（+ - * /），并将结果存放于T1中
+{
+	if(T1 == NULL || T2 == NULL)
+	{
+		return false;
+	}
+
+	switch(ch)
+	{
+	case '+':
+		T1->e1 += T2->e1;
+		T1->e2 += T2->e2;
+		T1->e3 += T2->e3;
+		break;
+	case '-':
+		T1->e1 -= T2->e1;
+		T1->e2 -= T2->e2;
+		T1->e3 -= T2->e3;
+		break;
+	case '*':
+		T1->e1 *= T2->e1;
+		T1->e2 *= T2->e2;
+		T1->e3 *= T2->e3;
+		break;
+	case '/':
+		T1->e1 /= T2->e1;
+		T1->e2 /= T2->e2;
+		T1->e3 /= T2->e3;
+		break;
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+bool SortTrip(TRIP *T, int n)            //给这个结构排序
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+
+	ElemType *B = (ElemType *)T;
+	ElemType tmp = 0;
+
+	for(int i = 0; i < n; i++)
+	{
+		for(int j = 0; j < n - i - 1; j++)
+		{
+			if(*(B + j) > *(B + j + 1))
+			{
+				tmp = *(B + j);
+				*(B + j) = *(B + j + 1);
+				*(B + j + 1) = tmp;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool GetAverage(TRIP *T, ElemType *v, int n)               //求这个结构的平均值，放到*v中
+{
+	if(T == NULL)
+	{
+		return false;
+	}
+	
+	ElemType *B = (ElemType *)T;
+	ElemType total = *B;
+
+	for(int i = 1; i < n; i++)
+	{
+		total += *(B + i);
+	}
+	*v = total / n;
+
+	return true;
+}
+
+ElemType CmpTrip(TRIP *T1, TRIP *T2, int n)      //比较两个结构是否相同，相同返回0，否则返回非0.
+{
+	if(T1 == NULL || T2 == NULL)
+	{
+		printf("the trip is err, can't compare!\n");
+		return 1;
+	}
+
+	ElemType *B1 = (ElemType *)T1;
+	ElemType *B2 = (ElemType *)T2;
+
+	for(int i = 0; i < n; i++)
+	{
+		if(*(B1 + i) - *(B2 + i))
+		{
+			return *(B1 + i) - *(B2 + i);
+		}
+	}
+
+	return 0;
+	
+}
