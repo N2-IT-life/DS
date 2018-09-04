@@ -1,0 +1,197 @@
+#ifndef _DOUBLELINK_H_
+#define _DOUBLELINK_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <vld.h>
+
+
+typedef struct _NODE 
+{
+	int data;
+	struct _NODE *priv;
+	struct _NODE *next;
+}NODE;
+
+NODE *InitLink();
+
+bool Show(NODE *phead);
+
+bool InsertHead(NODE *phead, int e);
+
+bool InsertTail(NODE *phead, int e);
+
+bool DeleteHead(NODE *phead, int *e);
+
+bool DeleteTail(NODE *phead, int *e);
+
+bool Destory(NODE *phead);
+
+#endif
+
+#include "DOUBLELINK.h"
+
+NODE *InitLink()  //初始化双链表
+{
+	NODE *phead = (NODE *)malloc(sizeof(NODE));
+	if (phead == NULL)
+	{
+		return NULL;
+	}
+
+	phead->data = -1;
+	phead->priv = NULL;
+	phead->next = NULL;
+
+	return phead;
+}
+
+bool Show(NODE *phead)  //打印双链表
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	while (p != NULL)
+	{
+		printf("%d  ", p->data);
+		p = p->next;
+	}
+	printf("\n");
+
+	return true;
+}
+
+static NODE *AllocNode(int e)
+{
+	NODE *tmp = (NODE *)malloc(sizeof(NODE));
+	if (tmp == NULL)
+	{
+		return NULL;
+	}
+
+	tmp->data = e;
+	tmp->priv = NULL;
+	tmp->next = NULL;
+
+	return tmp;
+}
+
+
+bool InsertHead(NODE *phead, int e)   //头插
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *tmp = AllocNode(e);
+	tmp->next = phead->next;
+	tmp->priv = phead;
+	phead->next = tmp;
+	if(phead->next != NULL)
+	{
+		phead->next->priv = tmp;
+	}
+
+	return true;
+}
+
+bool InsertTail(NODE *phead, int e)   //尾插
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	NODE *tmp = AllocNode(e);
+	NODE *p = phead;
+	while(p->next != NULL)
+	{
+		p = p->next;
+	}
+	p->next = tmp;
+	tmp->priv = p;
+
+	return true;
+}
+
+bool DeleteHead(NODE *phead, int *e)  //头删
+{
+	if (phead == NULL || phead->next == NULL)
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	*e = p->data;
+	phead->next = p->next;
+	if(p->next != NULL)
+	{
+		p->next->priv = phead;
+	}
+	free(p);
+
+	return true;
+}
+
+bool DeleteTail(NODE *phead, int *e)  //尾删
+{
+	if (phead == NULL || phead->next == NULL)
+	{
+		return false;
+	}
+
+	NODE *p = phead->next;
+	while(p->next != NULL)
+	{
+		p = p->next;
+	}
+	p->priv->next = NULL;
+	free(p);
+
+	return true;
+}
+
+
+bool Destory(NODE *phead)  //销毁
+{
+	if (phead == NULL)
+	{
+		return false;
+	}
+
+	int e = 0;
+	while(phead->next != NULL)
+	{
+		DeleteHead(phead, &e);
+	}
+	free(phead);
+	phead = NULL;
+
+	return true;
+}
+
+
+#include "DOUBLELINK.h"
+
+int main()
+{
+	NODE *phead = InitLink();
+	InsertHead(phead, 10);
+	InsertHead(phead, 20);
+	InsertHead(phead, 34);
+	Show(phead);
+	InsertTail(phead, 78);
+	InsertTail(phead, 67);
+	Show(phead);
+	int e = 0;
+	DeleteHead(phead, &e);
+	DeleteTail(phead, &e);
+	Show(phead);
+
+	Destory(phead);
+	return 0;
+}
