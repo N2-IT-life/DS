@@ -1,0 +1,163 @@
+#ifndef _LINK_QUEUE_H_
+#define _LINK_QUEUE_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <vld.h>
+
+typedef int elem_type;
+
+typedef struct _NODE
+{
+	elem_type data;
+	struct _NODE *next;
+}NODE;
+
+typedef struct _LINK_QUEUE
+{
+	int length;
+	NODE *head;
+	NODE *tail;
+}LINK_QUEUE;
+
+LINK_QUEUE *InitQueue();
+bool Destory(LINK_QUEUE *p);
+void Show(LINK_QUEUE *p);
+
+bool IsEmpty(LINK_QUEUE *p);
+
+bool Push(LINK_QUEUE *p, elem_type e);
+bool Pop(LINK_QUEUE *p, elem_type *e);
+
+#endif
+
+
+#include "LINK_QUEUE.h"
+
+LINK_QUEUE *InitQueue()  //初始化链表队列
+{
+	LINK_QUEUE *p = (LINK_QUEUE *)malloc(sizeof(LINK_QUEUE));
+	assert(p != NULL);
+
+	p->length = 0;
+	p->head = NULL;
+	p->tail = NULL;
+
+	return p;
+}
+
+bool Destory(LINK_QUEUE *p)  //销毁队列
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	elem_type e = 0;
+	while(!IsEmpty(p))
+	{
+		Pop(p, &e);
+	}
+	free(p);
+
+	return true;
+}
+void Show(LINK_QUEUE *p)   //打印队列
+{
+	if (p == NULL || IsEmpty(p))
+	{
+		return ;
+	}
+
+	NODE *d = p->head;
+	while (d != NULL)
+	{
+		printf("%d ", d->data);
+		d = d->next;
+	}
+	printf("\n");
+}
+
+
+
+bool IsEmpty(LINK_QUEUE *p)  //判空
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	return p->length == 0;
+}
+
+bool Push(LINK_QUEUE *p, elem_type e)  // 入队列
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	NODE *tmp = (NODE *)malloc(sizeof(NODE));
+	if (tmp == NULL)
+	{
+		return false;
+	}
+	tmp->data = e;
+	tmp->next = NULL;
+
+	if (IsEmpty(p))
+	{
+		p->head = tmp;
+		p->tail = tmp;
+	}
+	else
+	{
+		p->tail->next = tmp;
+		p->tail = tmp;
+	}
+	p->length++;
+
+
+	return true;
+}
+
+
+bool Pop(LINK_QUEUE *p, elem_type *e)   //出队列
+{
+	if (p == NULL || IsEmpty(p))
+	{
+		return false;
+	}
+
+	NODE *s = p->head;
+	*e = s->data;
+	if (s->next == NULL)
+	{
+		p->tail = NULL;
+	}
+	p->head = s->next;
+	p->length--;
+	free(s);
+
+	return true;
+}
+
+
+#include "LINK_QUEUE.h"
+
+int main()
+{
+	LINK_QUEUE *p = InitQueue();
+	Push(p, 10);
+	Push(p, 20);
+	Push(p, 30);
+	Show(p);
+
+	elem_type e = 0;
+	Pop(p, &e);
+	Pop(p, &e);
+	Show(p);
+	Destory(p);
+	return 0;
+}
