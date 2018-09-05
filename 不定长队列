@@ -1,0 +1,218 @@
+#ifndef _SEQ_QUEUE_CHANGE_H_
+#define  _SEQ_QUEUE_CHANGE_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+#include <vld.h>
+
+typedef int elem_type;
+#define MAXSIZE 4
+
+typedef struct _SEQ_QUEUE
+{
+	elem_type *data;
+	int head;
+	int tail;
+	int total;
+}SEQ_QUEUE;
+
+
+SEQ_QUEUE *InitQueue();
+bool Destory(SEQ_QUEUE *p);
+void Show(SEQ_QUEUE *p);
+
+bool IsFull(SEQ_QUEUE *p);
+bool IsEmpty(SEQ_QUEUE *p);
+
+bool Push(SEQ_QUEUE *p, elem_type e);
+bool Pop(SEQ_QUEUE *p, elem_type *e);
+
+bool SortRadix(elem_type *arr, int len, int radix);
+
+void PrintArray(elem_type *arr, int len);
+
+#endif
+
+#include "SEQ_QUEUE_CHANGE.h"
+
+
+SEQ_QUEUE *InitQueue()  //初始化队列
+{
+	SEQ_QUEUE *p = (SEQ_QUEUE *)malloc(sizeof(SEQ_QUEUE));
+	assert(p != NULL);
+	p->data = (elem_type *)malloc(sizeof(elem_type) * MAXSIZE);
+	assert(p->data != NULL);
+
+	p->head = 0;
+	p->tail = 0;
+	p->total = MAXSIZE;
+
+	return p;
+}
+
+
+bool Destory(SEQ_QUEUE *p) // 销毁队列
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	free(p->data);
+	free(p);
+
+	return true;
+}
+
+
+void Show(SEQ_QUEUE *p)  //打印队列
+{
+	if (p == NULL || IsEmpty(p))
+	{
+		return ;
+	}
+
+	int i = p->head;
+	while(i != p->tail)
+	{
+		printf("%d  ", p->data[i]);
+		i++;
+		i %= p->total;
+	}
+	printf("\n队列最大长度：%d\n", p->total);
+}
+
+bool IsFull(SEQ_QUEUE *p)  //判满
+{
+	if (p == NULL || p->data == NULL)
+	{
+		return false;
+	}
+	return p->head == (p->tail + 1) % p->total;
+}
+
+bool IsEmpty(SEQ_QUEUE *p)  //判空
+{
+	if (p == NULL || p->data == NULL)
+	{
+		return false;
+	}
+	return p->head == p->tail;
+}
+
+bool Push(SEQ_QUEUE *p, elem_type e)  //入队列
+{
+	if (p == NULL || p->data == NULL)
+	{
+		return false;
+	}
+
+	if (IsFull(p))
+	{
+		p->total *= 2;
+		p->data = (elem_type *)realloc(p->data, sizeof(elem_type) * p->total);
+		if (p->data == NULL)
+		{
+			return false;
+		}
+
+		if (p->tail < p->head)
+		{
+			int j = p->total / 2;
+			for (int i = 0; i < p->tail; i++, j++)
+			{
+				p->data[j] = p->data[i];
+			}
+			p->tail = j;
+		}
+	}
+	p->data[p->tail] = e;
+	p->tail++;
+	p->tail %= p->total;
+
+	return true;
+}
+
+
+bool Pop(SEQ_QUEUE *p, elem_type *e)   //出队
+{
+	if (p == NULL || p->data == NULL || IsEmpty(p))
+	{
+		return false;
+	}
+
+	*e = p->data[p->head];
+	p->head++;
+	p->head %= p->total;
+
+	return true;
+}
+
+static elem_type GetMax(elem_type *arr, int len)
+{
+	elem_type max = arr[0];
+	for (int i = 1; i < len; i++)
+	{
+		if (max < arr[i])
+		{
+			max = arr[i];
+		}
+	}
+
+	return max;
+}
+
+static int MaxLength(elem_type num)
+{
+	int length = 0;
+	while (num)
+	{
+		num /= 10;
+		length++;
+	}
+	return length;
+}
+
+void PrintArray(elem_type *arr, int len)  //打印数组
+{
+	for(int i = 0; i < len; i++)
+	{
+		printf("%d ", arr[i]);
+	}
+	printf("\n");
+}
+
+int main()//测试不定长队列
+{
+	elem_type e = 0;
+	SEQ_QUEUE *p = InitQueue();
+
+	Push(p, 10);
+	Push(p, 20);
+	Push(p, 30);
+	Pop(p, &e);
+	Pop(p, &e);
+	Push(p, 40);
+	Push(p, 50);
+	Push(p, 30);
+	Push(p, 40);
+	Push(p, 50);
+	Show(p);
+	Push(p, 30);
+	Push(p, 40);
+	Push(p, 50);
+	Push(p, 30);
+	Push(p, 40);
+	Push(p, 50);
+	Show(p);
+
+	
+	Pop(p, &e);
+	Pop(p, &e);
+	Show(p);
+
+	Destory(p);
+	return 0;
+}
