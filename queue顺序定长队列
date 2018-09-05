@@ -1,0 +1,145 @@
+#ifndef _SEQ_QUEUE_STATIC_H_
+#define _SEQ_QUEUE_STATIC_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <vld.h>
+
+#define  MAXSIZE 10
+typedef  int elem_type; 
+
+typedef struct _SEQ_QUEUE
+{
+	elem_type data[MAXSIZE];
+	int head;
+	int tail;
+
+}SEQ_QUEUE;
+
+SEQ_QUEUE *InitQueue();
+bool Destory(SEQ_QUEUE *p);
+void Show(SEQ_QUEUE *p);
+
+bool IsFull(SEQ_QUEUE *p);
+bool IsEmpty(SEQ_QUEUE *p);
+
+bool Push(SEQ_QUEUE *p, elem_type e);
+bool Pop(SEQ_QUEUE *p, elem_type *e);
+
+#endif
+
+
+#include "SEQ_QUEUE_STATIC.h"
+
+SEQ_QUEUE *InitQueue()  //初始化队列
+{
+	SEQ_QUEUE *p = (SEQ_QUEUE *)malloc((sizeof(SEQ_QUEUE)));
+	assert(p != NULL);
+
+	p->head = 0;
+	p->tail = 0;
+
+	return p;
+}
+
+
+bool Destory(SEQ_QUEUE *p)  //销毁队列
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	p->head = 0;
+	p->tail = 0;
+	free(p);
+
+	return true;
+}
+
+
+void Show(SEQ_QUEUE *p)  //打印
+{
+	if (p == NULL || IsEmpty(p))
+	{
+		return ;
+	}
+
+	int i = p->head;
+	while(i != p->tail)
+	{
+		printf("%d ", p->data[i]);
+		i++;
+		i %= MAXSIZE;
+	}
+	printf("\n");
+}
+
+
+bool IsFull(SEQ_QUEUE *p)  //判满
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	return p->head == (p->tail + 1) % MAXSIZE;
+}
+
+
+bool IsEmpty(SEQ_QUEUE *p) // 判空
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	return p->head == p->tail;
+}
+
+bool Push(SEQ_QUEUE *p, elem_type e)  //进入队列
+{
+	if (p == NULL || IsFull(p))
+	{
+		return false;
+	}
+
+	p->data[p->tail] = e;
+	p->tail++;
+	p->tail %= MAXSIZE;
+
+	return true;
+}
+
+bool Pop(SEQ_QUEUE *p, elem_type *e)  //出队列
+{
+	if (p == NULL || IsFull(p))
+	{
+		return false;
+	}
+
+	*e = p->data[p->head];
+	p->head++;
+	p->head %= MAXSIZE;
+
+	return true;
+}
+
+
+#include "SEQ_QUEUE_STATIC.h"
+
+int main()
+{
+	SEQ_QUEUE *p = InitQueue();
+	Push(p, 10);
+	Push(p, 20);
+	Push(p, 30);
+	;
+	elem_type e = 0;
+	Pop(p, &e);
+	Show(p);
+	Destory(p);
+
+	return 0;
+}
