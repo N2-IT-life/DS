@@ -1,0 +1,193 @@
+#include "StackApplication.h"
+typedef enum _STATUS
+{
+	IN,OUT
+}STATUS;
+
+static int GetLevel(char ch,STATUS stu)
+{
+	if (stu)  //外部符号为1
+	{
+		switch(ch) 
+		{
+		case '+':return  ADD_OUT;
+		case '-':return  SUB_OUT;
+		case '*':return  MUL_OUT;
+		case '/':return  DIV_OUT;
+		case '(':return  LEFT_OUT;
+		case ')':return  RIGHT_OUT;
+		}
+	}
+	else
+	{
+		switch(ch) 
+		{
+		case '+':return  ADD_IN;
+		case '-':return  SUB_IN;
+		case '*':return  MUL_IN;
+		case '/':return  DIV_IN;
+		case '(':return  LEFT_IN;
+		case ')':return  RIGHT_IN;
+		}
+	}
+}
+
+static char *Put2Str(char *s, char ch)
+{
+	*s = ch;
+	return ++s;
+}
+
+
+void LastExpression(char *mid, char *last) //中缀转为后缀
+{
+	SEQSTACK *p = InitStack();
+
+	while(*mid)
+	{
+		if (isdigit(*mid))
+		{
+			last = Put2Str(last, *mid);
+			mid++;
+		}
+		else if (*mid == '+' || *mid == '-' || *mid == '*' || *mid == '/' || *mid == '(' || *mid == ')' )
+		{
+			if (IsEmpty(p))
+			{
+				Push(p, *mid);
+				mid++;
+			}
+			else
+			{
+				char tmp = 0;
+				Get(p, &tmp); //得到栈顶的字符
+
+				if (GetLevel(tmp, IN) > GetLevel(*mid, OUT))
+				{
+					last = Put2Str(last, ' ');
+					Pop(p, &tmp);
+					last = Put2Str(last, tmp);
+					last = Put2Str(last, ' ');
+				}
+				else if(GetLevel(tmp, IN) < GetLevel(*mid, OUT))
+				{
+					Push(p, *mid);
+					mid++;
+				}
+				else
+				{
+					Pop(p, &tmp);
+					mid++;
+				}
+			}
+		}
+		else
+		{
+			last = Put2Str(last, ' ');
+			mid++;
+		}
+	}
+
+	last = Put2Str(last, ' ');
+	while(!IsEmpty(p))
+	{
+		Pop(p, last);
+		last++;
+		last = Put2Str(last, ' ');
+	}
+	*last = 0;
+
+	DestoryStack(p);
+}
+
+
+static int a2i(char *str)  //字符串转为数字
+{
+	int flag = 1;
+	if (*str == '-')
+	{
+		flag = -1;
+		str++;
+	}
+
+	int num = 0;
+	while (*str)
+	{
+		num *= 10;
+		num += *str - '0';
+		str++;
+	}
+
+	return num * flag;
+}
+
+
+int Calculate(char *str)  //计算
+{
+	int arr[20] = {0};     //模拟整形的栈
+	int top = 0;
+
+	int value = 0;         //每一次计算的值
+	char num[20] = {0};    //每一次取出来的数字字符串
+	char *s = num;
+
+	while(*str)
+	{
+		if (*str >= '0' && *str <= '9')
+		{
+			s = Put2Str(s, *str);
+		}
+		else if (*str == ' ')
+		{
+			if (isdigit(*(str - 1)))
+			{
+				*s = 0;
+				arr[top] = a2i(num);
+				top++;
+				s = num;
+			}
+		}
+		else
+		{
+			int op1 = 0;
+			int op2 = 0;
+			op2 = arr[top - 1];
+			op1 = arr[top - 2];
+			top -= 2;
+			switch(*str)
+			{
+			case '+':
+				value = op1 + op2;
+				break;
+			case '-':
+				value = op1 - op2;
+				break;
+			case '*':
+				value = op1 * op2;
+				break;
+			case '/':
+				value = op1 / op2;
+			}
+			str++;
+			arr[top] = value;
+			top++;
+		}
+		str++;
+	}
+
+	return arr[0];
+}
+
+int main()
+{
+	char mid_exp[128] = "160 + (7 * 3 + (12 - 12)) * 1";
+	char last_exp[128] = {0};
+	printf("中缀：%s \n", mid_exp);
+	LastExpression(mid_exp, last_exp);
+	printf("后缀：%s \n", last_exp);
+
+	int value = Calculate(last_exp);
+	printf("计算结果：%d \n", value);
+
+	return 0;
+}
