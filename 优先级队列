@@ -1,0 +1,192 @@
+#ifndef _PriorityQueue_H_
+#define _PriorityQueue_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <vld.h>
+#include <math.h>
+
+#define MAXSIZE 20
+typedef int elem_type;
+
+typedef struct _PRI_QUEUE 
+{
+	elem_type *data;
+	int *prio;
+	int head;
+	int tail;
+}PRI_QUEUE;
+
+PRI_QUEUE *InitQueue();
+bool Destory(PRI_QUEUE *p);
+void Show(PRI_QUEUE *p);
+
+bool IsFull(PRI_QUEUE *p);
+bool IsEmpty(PRI_QUEUE *p);
+
+bool Push(PRI_QUEUE *p, elem_type e, int level);
+bool Pop(PRI_QUEUE *p, elem_type *e, int *level);
+
+#endif
+
+#include "PriorityQueue.h"
+
+PRI_QUEUE *InitQueue()   //初始化优先级队列
+{
+	PRI_QUEUE *p = (PRI_QUEUE *)malloc((sizeof(PRI_QUEUE)));
+	p->data = (elem_type *)malloc(sizeof(elem_type) * MAXSIZE);
+	p->prio = (int *)malloc(sizeof(int) * MAXSIZE);
+	assert(p != NULL && p->data != NULL && p->prio != NULL);
+
+	p->head = 0;
+	p->tail = 0;
+
+	return p;
+}
+
+bool Destory(PRI_QUEUE *p)  //销毁队列
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	free(p->data);
+	free(p->prio);
+	free(p);
+
+	return true;
+}
+
+void Show(PRI_QUEUE *p)  //打印队列
+{
+	if (p == NULL || IsEmpty(p))
+	{
+		return;
+	}
+
+	int i = p->head;
+	while(i != p->tail)
+	{
+		printf("数据：%d  优先级：%d   \n", p->data[i], p->prio[i]);
+		i++;
+		i %= MAXSIZE;
+	}
+	printf("\n");
+}
+
+bool IsFull(PRI_QUEUE *p)   //判满
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	return p->head == (p->tail + 1) % MAXSIZE; 
+}
+
+bool IsEmpty(PRI_QUEUE *p)   //判空
+{
+	if (p == NULL)
+	{
+		return false;
+	}
+
+	return p->head == p->tail;
+}
+
+bool Push(PRI_QUEUE *p, elem_type e, int level)  //入队
+{
+	if (p == NULL || IsFull(p))
+	{
+		return false;
+	}
+
+	p->data[p->tail] = e;
+	p->prio[p->tail] = level;
+	p->tail++;
+	p->tail %= MAXSIZE;
+
+	return true;
+}
+
+bool Pop(PRI_QUEUE *p, elem_type *e, int *level)//出队
+{
+	if (p == NULL || IsEmpty(p))
+	{
+		return false;
+	}
+
+	if ((p->head + 1) % MAXSIZE == p->tail)
+	{
+		*e = p->data[p->head];
+		*level = p->prio[p->head];
+		p->head = 0;
+		p->tail = 0;
+	}
+	else
+	{
+		int max_level = p->prio[p->head];
+		int max_index = p->head;
+		int i = (p->head + 1) % MAXSIZE; 
+		while (i != p->tail)
+		{
+			if (max_level < p->prio[i])
+			{
+				max_level = p->prio[i];
+				max_index = i;
+			}
+			i++;
+			i %= MAXSIZE;
+		}
+		*e = p->data[max_index];
+		*level = max_level;
+
+		int j = max_index;
+		int s = (j + 1) % MAXSIZE;
+		while(s != p->tail)
+		{
+			p->data[j] = p->data[s];
+			p->prio[j] = p->prio[s];
+			j = s;
+			s++;
+			s %= MAXSIZE;
+		}
+		p->tail = abs(p->tail - 1);
+		p->head %= MAXSIZE;
+	}
+
+	return true;
+}
+
+#include "PriorityQueue.h"
+
+
+//入队无序，出队有序,越大优先级越高
+
+int main()
+{
+	PRI_QUEUE *p = InitQueue();
+	elem_type e = 0;
+	int level = 0;
+
+	Push(p, 10, 6);
+	Push(p, 20, 5);
+	Push(p, 30, 8);
+	Push(p, 40, 3);
+	Push(p, 50, 9);
+	Show(p);
+
+	Pop(p, &e, &level);
+	printf("删掉的数据：%d  优先级：%d \n", e, level);
+	Pop(p, &e, &level);
+	printf("删掉的数据：%d  优先级：%d \n", e, level);
+	Pop(p, &e, &level);
+	printf("删掉的数据：%d  优先级：%d \n", e, level);
+	Show(p);
+
+
+	Destory(p);
+	return 0;
+}
