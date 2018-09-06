@@ -1,0 +1,34 @@
+#include "LinkList.h"
+
+void ReverseLoop(NODE *p, NODE *Head)   //递归逆置单链表
+{
+	if (p->next == NULL)
+	{
+		Head->next = p;//找到最后一个节点
+		return;
+	}
+
+	ReverseLoop(p->next, Head);
+	p->next->next = p;   //翻转节点
+	p->next = NULL;      //第一个节点翻转后，其后继节点为null
+}
+
+
+
+int main()
+{
+	NODE *Aphead = InitLink();
+	InsertHead(Aphead, 80);
+	InsertHead(Aphead, 40);
+	InsertHead(Aphead, 20);
+	InsertHead(Aphead, 90);
+	InsertHead(Aphead, 130);
+
+	Show(Aphead, print_int);
+
+	ReverseLoop(Aphead->next,Aphead);
+	Show(Aphead, print_int);
+
+	Destory(Aphead);
+
+}
