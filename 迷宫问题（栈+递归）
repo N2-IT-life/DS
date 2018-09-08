@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+void Push(int *stack, int x, int y, int *top, char *node)
+{
+	*node = '*';
+	stack[(*top)++] = x;
+	stack[(*top)++] = y;
+}
+
+bool IsExit(char (*arr)[17], int x, int y)
+{
+	if (arr[x - 1][y] == '!')
+	{
+		printf("出口坐标： %d   %d \n", x - 1, y);
+		return true;
+	}
+	else if ( arr[x][y - 1] == '!')
+	{
+		printf("出口坐标： %d   %d \n", x, y - 1);
+		return true;
+	}
+	else if (arr[x + 1][y] == '!')
+	{
+		printf("出口坐标： %d   %d \n", x + 1, y);
+		return true;
+	}
+	else if (arr[x][y + 1] == '!')
+	{
+		printf("出口坐标： %d   %d \n", x, y + 1);
+		return true;
+	}
+	return false;
+}
+
+
+
+void FindByStack(char (*arr)[17], int x, int y)
+{
+	int stack[100] = {0};
+	assert(stack != NULL);
+	int top = 0;
+
+	Push(stack, x, y, &top, &arr[x][y]);
+	while(1)
+	{
+		if (IsExit(arr, x, y))
+		{
+			exit(0);
+		}
+		else if (arr[x - 1][y] == '0')
+		{
+			x -= 1;
+			Push(stack, x, y, &top, &arr[x][y]);
+		}
+		else if (arr[x][y - 1] == '0')
+		{
+			y -= 1;
+			Push(stack, x, y, &top, &arr[x][y]);
+		}
+		else if (arr[x + 1][y] == '0')
+		{
+			x += 1;
+			Push(stack, x, y, &top, &arr[x][y]);
+		}
+		else if (arr[x][y + 1] == '0')
+		{
+			y += 1;
+			Push(stack, x, y, &top, &arr[x][y]);
+		}
+		else
+		{
+			y = stack[--top];
+			x = stack[--top];
+		}
+	}
+
+	free(stack);
+}
+
+
+
+
+////////////////////递归迷宫
+void find(char (*arr)[17], int a, int b)
+{
+	if (arr[a][b] == '1' || arr[a][b] == '*')
+	{
+		return;
+	}
+	if (arr[a][b] == '!')
+	{
+		printf("找到出口坐标为： %d  %d \n", a, b);
+		exit(0);
+	}
+
+	arr[a][b] = '*';
+
+	find(arr, a - 1, b);  //上、左、下、右
+	find(arr, a, b - 1);
+	find(arr, a + 1, b);
+	find(arr, a, b + 1);
+}
+
+int main()
+{
+	char arr[6][17] = {
+		"1111111111111111",
+		"1011111111111111",
+		"1011111110111111",
+		"1000000000001111",
+		"101111110110!111",
+		"1111111111111111"
+	};
+
+
+	FindByStack(arr, 1, 1);
+	//find(arr, 1, 1);
+
+	return 0;
+}
