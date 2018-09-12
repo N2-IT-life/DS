@@ -1,0 +1,25 @@
+//用数组模拟栈
+
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+	int arr[10] = {0};
+	int length = 0;
+	int num = 12345;
+
+	while(num)
+	{
+		arr[length] = num % 10;
+		num /= 10;
+		length++;
+	}
+
+	for(int i = length - 1; i >= 0; i--)
+	{
+		printf("%d ", arr[i]);
+	}
+
+	return 0;
+}
